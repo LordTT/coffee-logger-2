@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Coffee Types - Coffee Logger{% endblock %}
+
+{% block content %}
+<h1>Coffee Types</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Add New Coffee Type</h5>
+            </div>
+            <div class="card-body">
+                <form id="coffeeTypeForm">
+                    <div class="mb-3">
+                        <label for="typeName" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="typeName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="typeDescription" class="form-label">Description</label>
+                        <textarea class="form-control" id="typeDescription" rows="2"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="userId" class="form-label">User</label>
+                        <select class="form-select" id="userId" required>
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Add Coffee Type</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Existing Coffee Types</h5>
+            </div>
+            <div class="card-body">
+                <div id="coffee-types-list">
+                    <p>Loading coffee types...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load users for dropdown
+fetch('/api/users')
+    .then(response => response.json())
+    .then(data => {
+        const userSelect = document.getElementById('userId');
+        data.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.username;
+            userSelect.appendChild(option);
+        });
+    });
+
+// Load coffee types
+function loadCoffeeTypes() {
+    fetch('/api/coffee-types')
+        .then(response => response.json())
+        .then(data => {
+            const coffeeTypesDiv = document.getElementById('coffee-types-list');
+            if (data.length === 0) {
+                coffeeTypesDiv.innerHTML = '<p>No coffee types yet.</p>';
+                return;
+            }
+            
+            coffeeTypesDiv.innerHTML = '<ul class="list-group">' + 
+                data.map(ct => 
+                    `<li class="list-group-item">
+                        <strong>${ct.name}</strong><br>
+                        ${ct.description || 'No description'}<br>
+                        <small class="text-muted">Created: ${ct.created_at}</small>
+                    </li>`
+                ).join('') + 
+                '</ul>';
+        });
+}
+
+// Handle form submission
+document.getElementById('coffeeTypeForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        name: document.getElementById('typeName').value,
+        description: document.getElementById('typeDescription').value,
+        user_id: document.getElementById('userId').value
+    };
+    
+    fetch('/api/coffee-types', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Coffee type added successfully!');
+        document.getElementById('coffeeTypeForm').reset();
+        loadCoffeeTypes(); // Refresh the list
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error adding coffee type.');
+    });
+});
+
+// Load coffee types on page load
+loadCoffeeTypes();
+</script>
+{% endblock %}

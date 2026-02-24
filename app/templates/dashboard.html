@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Coffee Logger{% endblock %}
+
+{% block content %}
+<h1>Coffee Dashboard</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Coffee Logs</h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-logs">
+                    <p>Loading recent logs...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Coffee Type Distribution</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="coffeeTypeChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Weekly Consumption</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="weeklyChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Load recent logs
+fetch('/api/coffee-logs')
+    .then(response => response.json())
+    .then(data => {
+        const recentLogsDiv = document.getElementById('recent-logs');
+        if (data.length === 0) {
+            recentLogsDiv.innerHTML = '<p>No coffee logs yet.</p>';
+            return;
+        }
+        
+        // Display latest 5 logs
+        const latestLogs = data.slice(0, 5);
+        recentLogsDiv.innerHTML = '<ul class="list-group">' + 
+            latestLogs.map(log => 
+                `<li class="list-group-item">${log.timestamp}: ${log.coffee_type_id} - ${log.notes || 'No notes'}</li>`
+            ).join('') + 
+            '</ul>';
+    });
+
+// Coffee Type Chart
+const ctx1 = document.getElementById('coffeeTypeChart').getContext('2d');
+const coffeeTypeChart = new Chart(ctx1, {
+    type: 'pie',
+    data: {
+        labels: ['Espresso', 'Americano', 'Latte', 'Cappuccino', 'Other'],
+        datasets: [{
+            data: [30, 25, 20, 15, 10],
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56',
+                '#4BC0C0',
+                '#9966FF'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom',
+            }
+        }
+    }
+});
+
+// Weekly Chart
+const ctx2 = document.getElementById('weeklyChart').getContext('2d');
+const weeklyChart = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Cups per Day',
+            data: [2, 3, 1, 4, 5, 3, 2],
+            backgroundColor: '#4CAF50'
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

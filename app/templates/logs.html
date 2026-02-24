@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Coffee Logs - Coffee Logger{% endblock %}
+
+{% block content %}
+<h1>Coffee Logs</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Log New Coffee</h5>
+            </div>
+            <div class="card-body">
+                <form id="logForm">
+                    <div class="mb-3">
+                        <label for="userId" class="form-label">User</label>
+                        <select class="form-select" id="userId" required>
+                            <option value="">Select User</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="coffeeTypeId" class="form-label">Coffee Type</label>
+                        <select class="form-select" id="coffeeTypeId" required>
+                            <option value="">Select Coffee Type</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" rows="3"></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Log Coffee</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Logs</h5>
+            </div>
+            <div class="card-body">
+                <div id="recent-logs-list">
+                    <p>Loading recent logs...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load users and coffee types for dropdowns
+fetch('/api/users')
+    .then(response => response.json())
+    .then(data => {
+        const userSelect = document.getElementById('userId');
+        data.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id;
+            option.textContent = user.username;
+            userSelect.appendChild(option);
+        });
+    });
+
+fetch('/api/coffee-types')
+    .then(response => response.json())
+    .then(data => {
+        const coffeeTypeSelect = document.getElementById('coffeeTypeId');
+        data.forEach(ct => {
+            const option = document.createElement('option');
+            option.value = ct.id;
+            option.textContent = ct.name;
+            coffeeTypeSelect.appendChild(option);
+        });
+    });
+
+// Handle form submission
+document.getElementById('logForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        user_id: document.getElementById('userId').value,
+        coffee_type_id: document.getElementById('coffeeTypeId').value,
+        notes: document.getElementById('notes').value
+    };
+    
+    fetch('/api/coffee-logs', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert('Coffee logged successfully!');
+        document.getElementById('logForm').reset();
+        loadRecentLogs(); // Refresh the logs list
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error logging coffee.');
+    });
+});
+
+// Load recent logs
+function loadRecentLogs() {
+    fetch('/api/coffee-logs')
+        .then(response => response.json())
+        .then(data => {
+            const recentLogsDiv = document.getElementById('recent-logs-list');
+            if (data.length === 0) {
+                recentLogsDiv.innerHTML = '<p>No coffee logs yet.</p>';
+                return;
+            }
+            
+            // Display latest 5 logs
+            const latestLogs = data.slice(0, 5);
+            recentLogsDiv.innerHTML = '<ul class="list-group">' + 
+                latestLogs.map(log => 
+                    `<li class="list-group-item">${log.timestamp}: ${log.coffee_type_id} - ${log.notes || 'No notes'}</li>`
+                ).join('') + 
+                '</ul>';
+        });
+}
+
+// Load recent logs on page load
+loadRecentLogs();
+</script>
+{% endblock %}
