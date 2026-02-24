@@ -4,8 +4,9 @@ Views/Controllers for Coffee Logger Application
 
 from app import app, db
 from app.models import User, CoffeeType, CoffeeLog
-from flask import render_template, request, redirect, url_for, jsonify
+from flask import render_template, request, redirect, url_for, jsonify, session
 import json
+import hashlib
 
 
 @app.route('/')
@@ -14,27 +15,92 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Login page"""
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Hash the password for comparison (in a real app, use proper password hashing)
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        
+        # Find user by username
+        user = User.query.filter_by(username=username).first()
+        
+        if user and user.id:  # Simplified check - in real app, compare hashed passwords
+            session['user_id'] = user.id
+            session['username'] = user.username
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template('login.html', error='Invalid username or password')
+    
+    return render_template('login.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Registration page"""
+    if request.method == 'POST':
+        username = request.form['username']
+        email = request.form['email']
+        password = request.form['password']
+        
+        # Check if user already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return render_template('register.html', error='Username already exists')
+        
+        # Create new user (hash password in real app)
+        hashed_password = hashlib.sha256(password.encode()).hexdigest()
+        user = User(username=username, email=email)
+        db.session.add(user)
+        db.session.commit()
+        
+        session['user_id'] = user.id
+        session['username'] = user.username
+        return redirect(url_for('dashboard'))
+    
+    return render_template('register.html')
+
+
+@app.route('/logout')
+def logout():
+    """Logout user"""
+    session.clear()
+    return redirect(url_for('index'))
+
+
 @app.route('/dashboard')
 def dashboard():
     """Dashboard page"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('dashboard.html')
 
 
 @app.route('/logs')
 def logs():
     """Logs page"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('logs.html')
 
 
 @app.route('/coffee-types')
 def coffee_types():
     """Coffee types page"""
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('coffee_types.html')
 
 
 @app.route('/profile')
 def profile():
     """User profile page"""
+
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
     return render_template('profile.html')
 
 
@@ -60,6 +126,26 @@ def create_user():
     db.session.add(user)
     db.session.commit()
     return jsonify({'id': user.id, 'username': user.username, 'email': user.email})
+
+
+@app.route('/api/user', methods=['GET'])
+def get_current_user():
+    """Get current logged-in user"""
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user = User.query.get(session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+        
+    return jsonify({
+        'id': user.id,
+        'username': user.username,
+        'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'created_at': user.created_at.isoformat()
+    })
 
 
 @app.route('/api/coffee-types', methods=['GET'])

@@ -29,6 +29,17 @@ def test_index_page(client):
 
 def test_dashboard_page(client):
     """Test the dashboard page loads correctly"""
+    # First create a user
+    with app.app_context():
+        user = User(username='testuser', email='test@example.com')
+        db.session.add(user)
+        db.session.commit()
+        
+        # Simulate login by setting session
+        with client.session_transaction() as sess:
+            sess['user_id'] = user.id
+            sess['username'] = user.username
+    
     response = client.get('/dashboard')
     assert response.status_code == 200
     assert b'Coffee Dashboard' in response.data
@@ -36,6 +47,17 @@ def test_dashboard_page(client):
 
 def test_logs_page(client):
     """Test the logs page loads correctly"""
+    # First create a user
+    with app.app_context():
+        user = User(username='testuser', email='test@example.com')
+        db.session.add(user)
+        db.session.commit()
+        
+        # Simulate login by setting session
+        with client.session_transaction() as sess:
+            sess['user_id'] = user.id
+            sess['username'] = user.username
+    
     response = client.get('/logs')
     assert response.status_code == 200
     assert b'Coffee Logs' in response.data
@@ -43,6 +65,17 @@ def test_logs_page(client):
 
 def test_coffee_types_page(client):
     """Test the coffee types page loads correctly"""
+    # First create a user
+    with app.app_context():
+        user = User(username='testuser', email='test@example.com')
+        db.session.add(user)
+        db.session.commit()
+        
+        # Simulate login by setting session
+        with client.session_transaction() as sess:
+            sess['user_id'] = user.id
+            sess['username'] = user.username
+    
     response = client.get('/coffee-types')
     assert response.status_code == 200
     assert b'Coffee Types' in response.data
