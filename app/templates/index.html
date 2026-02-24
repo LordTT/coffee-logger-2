@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Coffee Logger{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8 mx-auto text-center">
+        <h1 class="display-4">Welcome to Coffee Logger</h1>
+        <p class="lead">Track your coffee consumption with detailed statistics and customizable coffee types.</p>
+        
+        <div class="mt-5">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-2">View Dashboard</a>
+            <a href="{{ url_for('logs') }}" class="btn btn-outline-secondary btn-lg">Log Coffee</a>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Track Consumption</h5>
+                <p class="card-text">Log every cup of coffee you drink with timestamps and notes.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Custom Types</h5>
+                <p class="card-text">Create and manage your own coffee types with descriptions.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body text-center">
+                <h5 class="card-title">Detailed Stats</h5>
+                <p class="card-text">View comprehensive statistics and trends in your coffee habits.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

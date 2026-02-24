@@ -1,0 +1,40 @@
+/* Custom styles for Coffee Logger */
+
+body {
+    background-color: #f8f9fa;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.navbar-brand {
+    font-weight: bold;
+}
+
+.btn-primary {
+    background-color: #8B4513;
+    border-color: #8B4513;
+}
+
+.btn-primary:hover {
+    background-color: #654321;
+    border-color: #654321;
+}
+
+/* Coffee-themed colors */
+.coffee-brown {
+    color: #8B4513;
+}
+
+.bg-coffee {
+    background-color: #8B4513 !important;
+}
+
+/* Chart container */
+.chart-container {
+    position: relative;
+    height: 300px;
+    margin-top: 20px;
+}
