@@ -98,6 +98,7 @@ def coffee_types():
 @app.route('/profile')
 def profile():
     """User profile page"""
+
     if 'user_id' not in session:
         return redirect(url_for('login'))
     return render_template('profile.html')
