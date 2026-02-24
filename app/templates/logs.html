@@ -14,12 +14,6 @@
             <div class="card-body">
                 <form id="logForm">
                     <div class="mb-3">
-                        <label for="userId" class="form-label">User</label>
-                        <select class="form-select" id="userId" required>
-                            <option value="">Select User</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
                         <label for="coffeeTypeId" class="form-label">Coffee Type</label>
                         <select class="form-select" id="coffeeTypeId" required>
                             <option value="">Select Coffee Type</option>
@@ -51,19 +45,7 @@
 
 {% block scripts %}
 <script>
-// Load users and coffee types for dropdowns
-fetch('/api/users')
-    .then(response => response.json())
-    .then(data => {
-        const userSelect = document.getElementById('userId');
-        data.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.id;
-            option.textContent = user.username;
-            userSelect.appendChild(option);
-        });
-    });
-
+// Load coffee types for dropdown
 fetch('/api/coffee-types')
     .then(response => response.json())
     .then(data => {
@@ -80,29 +62,38 @@ fetch('/api/coffee-types')
 document.getElementById('logForm').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    const formData = {
-        user_id: document.getElementById('userId').value,
-        coffee_type_id: document.getElementById('coffeeTypeId').value,
-        notes: document.getElementById('notes').value
-    };
-    
-    fetch('/api/coffee-logs', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        alert('Coffee logged successfully!');
-        document.getElementById('logForm').reset();
-        loadRecentLogs(); // Refresh the logs list
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('Error logging coffee.');
-    });
+    // Get current user ID
+    fetch('/api/user')
+        .then(response => response.json())
+        .then(userData => {
+            const formData = {
+                user_id: userData.id,
+                coffee_type_id: document.getElementById('coffeeTypeId').value,
+                notes: document.getElementById('notes').value
+            };
+            
+            fetch('/api/coffee-logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Coffee logged successfully!');
+                document.getElementById('logForm').reset();
+                loadRecentLogs(); // Refresh the logs list
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error logging coffee.');
+            });
+        })
+        .catch(error => {
+            console.error('Error fetching user:', error);
+            alert('Error retrieving user information.');
+        });
 });
 
 // Load recent logs
