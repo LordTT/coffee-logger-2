@@ -182,15 +182,23 @@ def create_coffee_type():
 
 @app.route('/api/coffee-logs', methods=['GET'])
 def get_coffee_logs():
-    """Get all coffee logs"""
+    """Get all coffee logs with coffee type names"""
     coffee_logs = CoffeeLog.query.all()
-    return jsonify([{
-        'id': cl.id,
-        'user_id': cl.user_id,
-        'coffee_type_id': cl.coffee_type_id,
-        'timestamp': cl.timestamp.isoformat(),
-        'notes': cl.notes
-    } for cl in coffee_logs])
+    result = []
+    for cl in coffee_logs:
+        # Get coffee type name for display
+        coffee_type = CoffeeType.query.get(cl.coffee_type_id)
+        coffee_type_name = coffee_type.name if coffee_type else f"Unknown Type {cl.coffee_type_id}"
+        
+        result.append({
+            'id': cl.id,
+            'user_id': cl.user_id,
+            'coffee_type_id': cl.coffee_type_id,
+            'coffee_type_name': coffee_type_name,
+            'timestamp': cl.timestamp.isoformat(),
+            'notes': cl.notes
+        })
+    return jsonify(result)
 
 
 @app.route('/api/coffee-logs', methods=['POST'])

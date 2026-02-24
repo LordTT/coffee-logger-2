@@ -61,58 +61,117 @@ fetch('/api/coffee-logs')
         const latestLogs = data.slice(0, 5);
         recentLogsDiv.innerHTML = '<ul class="list-group">' + 
             latestLogs.map(log => 
-                `<li class="list-group-item">${log.timestamp}: ${log.coffee_type_id} - ${log.notes || 'No notes'}</li>`
+                `<li class="list-group-item">${new Date(log.timestamp).toLocaleString()}: ${log.coffee_type_name} - ${log.notes || 'No notes'}</li>`
             ).join('') + 
             '</ul>';
+    })
+    .catch(error => {
+        console.error('Error loading recent logs:', error);
+        const recentLogsDiv = document.getElementById('recent-logs');
+        recentLogsDiv.innerHTML = '<p>Error loading recent logs.</p>';
     });
 
 // Coffee Type Chart
-const ctx1 = document.getElementById('coffeeTypeChart').getContext('2d');
-const coffeeTypeChart = new Chart(ctx1, {
-    type: 'pie',
-    data: {
-        labels: ['Espresso', 'Americano', 'Latte', 'Cappuccino', 'Other'],
-        datasets: [{
-            data: [30, 25, 20, 15, 10],
-            backgroundColor: [
-                '#FF6384',
-                '#36A2EB',
-                '#FFCE56',
-                '#4BC0C0',
-                '#9966FF'
-            ]
-        }]
-    },
-    options: {
-        responsive: true,
-        plugins: {
-            legend: {
-                position: 'bottom',
+function createCoffeeTypeChart() {
+    fetch('/api/coffee-logs')
+        .then(response => response.json())
+        .then(data => {
+            // Aggregate coffee type counts
+            const typeCounts = {};
+            data.forEach(log => {
+                const typeName = log.coffee_type_name;
+                typeCounts[typeName] = (typeCounts[typeName] || 0) + 1;
+            });
+            
+            const labels = Object.keys(typeCounts);
+            const counts = Object.values(typeCounts);
+            
+            // Create color array
+            const backgroundColors = [];
+            const hueStep = 360 / labels.length;
+            for (let i = 0; i < labels.length; i++) {
+                backgroundColors.push(`hsl(${i * hueStep}, 70%, 60%)`);
             }
-        }
-    }
-});
+            
+            const ctx1 = document.getElementById('coffeeTypeChart').getContext('2d');
+            if (window.coffeeTypeChart) {
+                window.coffeeTypeChart.destroy();
+            }
+            
+            window.coffeeTypeChart = new Chart(ctx1, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: counts,
+                        backgroundColor: backgroundColors
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error creating coffee type chart:', error);
+        });
+}
 
 // Weekly Chart
-const ctx2 = document.getElementById('weeklyChart').getContext('2d');
-const weeklyChart = new Chart(ctx2, {
-    type: 'bar',
-    data: {
-        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-        datasets: [{
-            label: 'Cups per Day',
-            data: [2, 3, 1, 4, 5, 3, 2],
-            backgroundColor: '#4CAF50'
-        }]
-    },
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true
+function createWeeklyChart() {
+    fetch('/api/coffee-logs')
+        .then(response => response.json())
+        .then(data => {
+            // Aggregate by day of week
+            const dayCounts = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0};
+            const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            data.forEach(log => {
+                const date = new Date(log.timestamp);
+                const dayIndex = date.getDay();
+                dayCounts[dayIndex]++;
+            });
+            
+            const labels = days;
+            const counts = Object.values(dayCounts);
+            
+            const ctx2 = document.getElementById('weeklyChart').getContext('2d');
+            if (window.weeklyChart) {
+                window.weeklyChart.destroy();
             }
-        }
-    }
-});
+            
+            window.weeklyChart = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Cups per Day',
+                        data: counts,
+                        backgroundColor: '#4CAF50'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        })
+        .catch(error => {
+            console.error('Error creating weekly chart:', error);
+        });
+}
+
+// Load charts after recent logs
+createCoffeeTypeChart();
+createWeeklyChart();
 </script>
 {% endblock %}
