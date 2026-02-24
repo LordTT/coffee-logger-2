@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - Coffee Logger{% endblock %}
+
+{% block content %}
+<h1>User Profile</h1>
+
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Edit Profile</h5>
+            </div>
+            <div class="card-body">
+                <form id="profileForm">
+                    <div class="mb-3">
+                        <label for="firstName" class="form-label">First Name</label>
+                        <input type="text" class="form-control" id="firstName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="lastName" class="form-label">Last Name</label>
+                        <input type="text" class="form-control" id="lastName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="username" readonly>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Profile Summary</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Username:</strong> <span id="profile-username">-</span></p>
+                <p><strong>Email:</strong> <span id="profile-email">-</span></p>
+                <p><strong>Name:</strong> <span id="profile-name">-</span></p>
+                <p><strong>Member Since:</strong> <span id="profile-created">-</span></p>
+                <p><strong>Total Coffees:</strong> <span id="profile-total-coffees">-</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Load user profile data
+function loadUserProfile() {
+    // In a real app, this would fetch from the API
+    // For demo purposes, we'll simulate with hardcoded data
+    
+    const userData = {
+        id: 1,
+        username: 'john_doe',
+        email: 'john@example.com',
+        first_name: 'John',
+        last_name: 'Doe',
+        created_at: '2023-01-15T10:00:00Z',
+        total_coffees: 127
+    };
+    
+    // Populate form fields
+    document.getElementById('firstName').value = userData.first_name;
+    document.getElementById('lastName').value = userData.last_name;
+    document.getElementById('email').value = userData.email;
+    document.getElementById('username').value = userData.username;
+    
+    // Populate summary
+    document.getElementById('profile-username').textContent = userData.username;
+    document.getElementById('profile-email').textContent = userData.email;
+    document.getElementById('profile-name').textContent = `${userData.first_name} ${userData.last_name}`;
+    document.getElementById('profile-created').textContent = new Date(userData.created_at).toLocaleDateString();
+    document.getElementById('profile-total-coffees').textContent = userData.total_coffees;
+}
+
+// Handle form submission
+document.getElementById('profileForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const firstName = document.getElementById('firstName').value;
+    const lastName = document.getElementById('lastName').value;
+    
+    // In a real app, this would make an API call
+    alert(`Profile updated!\nName: ${firstName} ${lastName}`);
+});
+
+// Load profile on page load
+loadUserProfile();
+</script>
+{% endblock %}
