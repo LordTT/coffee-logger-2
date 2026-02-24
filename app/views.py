@@ -32,6 +32,12 @@ def coffee_types():
     return render_template('coffee_types.html')
 
 
+@app.route('/profile')
+def profile():
+    """User profile page"""
+    return render_template('profile.html')
+
+
 # API Routes
 
 @app.route('/api/users', methods=['GET'])
